@@ -47,36 +47,35 @@ app.get('/weather', async (request, response, next) =>{
   }
 });
 
-// weather API call
-// 16 day / daily
-// https://api.weatherbit.io/v2.0/forecast/daily?key=REACT_APP_WEATHERBIT_KEY&units=I&days=10&lat=${lat}&lon=${lon}
 
+app.get('/movies', async (request, results, next) => {
 
-// movies API call
-// pass our searchQuery term to query
+  try {
+    // get keyword from front end (lat and lon for the lab)
+    let movie = request.query.searchQuery;
 
-// app.get('/photos', async (req, res, next) => {
+    //make axios call to unsplash (weather and movie apis)
+    let movie_url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.REACT_APP_MOVIES_API_KEY}&language=en-US&query=${movie}&page=1&include_adult=false`;
+    let movieResults = await axios.get(movie_url);
+    let movieDataSend = movieResults.data.results.map((element) => new Movie(element));
 
-//   try {
-//     // get keyword from front end (lat and lon for the lab)
-//     let lat = req.query.lat;
-//     let lon = req.query.lon;
+    //groom data (using a class) to send back to front end
+    results.status(200).send(movieDataSend);
 
-   
-//     //make axios call to unsplash (weather and movie apis)
-//     let movie_url = `${process.env.REACT_APP_MOVIE}${lat} ${lon}`
-//     let movieResults = await axios.get(movie_url);
+  } catch(error) {
+    next(error);
+  }
 
+});
 
-//     //groom data (using a class) to send back to front end
-//     res.status(200).send(movieResults.data);
-
-//   } catch(error) {
-//     next(error);
-//   }
-
-// });
-
+class Movie {
+  constructor(object) {
+    this.title = object.title;
+    this.release = object.release_date;
+    this.poster_path = object.poster_path;
+    this.poster_url= `https://image.tmdb.org/t/p/original/${this.poster_path}`;
+  }
+}
 
 
 class Forecast {
