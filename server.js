@@ -51,7 +51,7 @@ app.get('*', (req, res) => {
 
 // -------- ERROR HANDLING ----------
 
-app.use((error, request, response, next)=> {
+app.use((error, request, response)=> {
   response.status(500).send(error.message);
 });
 
