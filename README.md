@@ -19,6 +19,6 @@ To do this project, you need:
 
 ## Change Log
 
-10-25-2022 4:00pm - Application now has a atructure for an Express server.
-
+10-25-2022 4:00pm - Application now has a structure for an Express server.
+10-25-2022 5:00pm - Express server complete
 ## Credit and Collaborations
