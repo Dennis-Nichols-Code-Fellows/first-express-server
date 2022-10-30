@@ -1,32 +1,42 @@
+"use strict";
 let axios = require("axios");
+let cache = require("./cache.js");
 
-async function getWeather(request, response, next) {
+module.exports = getWeather;
+
+function getWeather(latitude, longitude) {
+  const key = "weather-" + latitude + longitude;
+  const url = `http://api.weatherbit.io/v2.0/forecast/daily/?key=${process.env.REACT_APP_WEATHERBIT_KEY}&lang=en&lat=${latitude}&lon=${longitude}&days=5`;
+
+  if (cache[key] && Date.now() - cache[key].timestamp < 50000) {
+    console.log("Cache hit");
+  } else {
+    console.log("Cache miss");
+    cache[key] = {};
+    cache[key].timestamp = Date.now();
+    cache[key].data = axios
+      .get(url)
+      .then((response) => parseWeather(response.data));
+  }
+
+  return cache[key].data;
+}
+
+function parseWeather(weatherData) {
   try {
-    //get data from front end query
-    let lat = Math.floor(request.query.lat);
-    let lon = Math.floor(request.query.lon);
-    //make request to weather service API
-
-    let weather_url = `https://api.weatherbit.io/v2.0/forecast/daily?key=${process.env.REACT_APP_WEATHERBIT_KEY}&units=I&days=10&lat=${lat}&lon=${lon}`;
-    let weather_results = await axios.get(weather_url);
-    console.log(weather_results);
-
-    //groom data and send back
-    // let dataToGroom = weather_results.find(weatherObj => (Math.floor(weatherObj.lat) === lat && Math.floor(weatherObj.lon) === lon));
-    let dataToSend = weather_results.data.data.map(
-      (element) => new Forecast(element)
-    );
-
-    response.status(200).send(dataToSend);
-  } catch (error) {
-    next(error);
+    const weatherSummaries = weatherData.data.map((day) => {
+      return new Weather(day);
+    });
+    return Promise.resolve(weatherSummaries);
+  } catch (e) {
+    return Promise.reject(e);
   }
 }
 
-class Forecast {
-  constructor(object) {
-    this.description = object.weather.description;
-    this.date = object.valid_date;
+class Weather {
+  constructor(day) {
+    this.forecast = day.weather.description;
+    this.time = day.datetime;
   }
 }
 
